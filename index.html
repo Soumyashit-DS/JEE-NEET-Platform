@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Home - JEE/NEET Platform{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<div class="row mb-5">
+    <div class="col-lg-12">
+        <div class="jumbotron text-white p-5 rounded" style="background: linear-gradient(135deg, #008080 40%, #00FFFF 100%);">
+            <h1 class="display-4">
+                <i class="bi bi-trophy-fill"></i> Master JEE & NEET
+            </h1>
+            <p class="lead">
+                India's Realistic Competitive Exam Practice Platform
+            </p>
+            <hr class="my-4 bg-white">
+            <p>
+                Experience real exam conditions with server-side timer, XP system, and detailed analytics.
+                All powered by pure Python/Flask backend!
+            </p>
+            {% if not current_user.is_authenticated %}
+                <a class="btn btn-light btn-lg me-2" href="{{ url_for('register') }}">
+                    <i class="bi bi-person-plus"></i> Get Started Free
+                </a>
+                <a class="btn btn-outline-light btn-lg" href="{{ url_for('login') }}">
+                    Login
+                </a>
+            {% else %}
+                <a class="btn btn-light btn-lg" href="{{ url_for('dashboard') }}">
+                    <i class="bi bi-speedometer2"></i> Go to Dashboard
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Features -->
+<div class="row mb-5">
+    <div class="col-12 text-center mb-4">
+        <h2>Why Choose Our Platform?</h2>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-clock-history text-primary" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">Server-Side Timer</h5>
+                <p class="card-text">
+                    Real JEE (3h) and NEET (3.5h) durations with auto-submit when time expires.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-award text-success" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">XP & Leveling</h5>
+                <p class="card-text">
+                    Earn XP, level up, track consistency. All calculations done server-side for accuracy.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <i class="bi bi-graph-up text-warning" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">Smart Analytics</h5>
+                <p class="card-text">
+                    Subject-wise performance tracking identifies your strengths and weaknesses automatically.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Exam Types -->
+<div class="row mb-5">
+    <div class="col-12 text-center mb-4">
+        <h2>Available Exams</h2>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card border-primary shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-calculator"></i> JEE Mains</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle-fill text-success"></i> 75 Questions</li>
+                    <li><i class="bi bi-check-circle-fill text-success"></i> 300 Marks</li>
+                    <li><i class="bi bi-check-circle-fill text-success"></i> 3 Hours Duration</li>
+                    <li><i class="bi bi-check-circle-fill text-success"></i> Physics, Chemistry, Mathematics</li>
+                    <li><i class="bi bi-check-circle-fill text-success"></i> +4/-1 Marking</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card border-success shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0"><i class="bi bi-heart-pulse"></i> NEET</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check-circle-fill text-success"></i> 135 Questions</li>
+                    <li><i class="bi bi-check-circle-fill text-success"></i> 720 Marks</li>
+                    <li><i class="bi bi-check-circle-fill text-success"></i> 3.5 Hours Duration</li>
+                    <li><i class="bi bi-check-circle-fill text-success"></i> Physics, Chemistry, Biology</li>
+                    <li><i class="bi bi-check-circle-fill text-success"></i> +4/-1 Marking</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Technology Info -->
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5><i class="bi bi-info-circle"></i> About This Project</h5>
+            <p class="mb-0">
+                IITM MAD 1 project.
+                
+            </p>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

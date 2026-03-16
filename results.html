@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}Test Results{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col-12 text-center">
+        <h2>
+            <i class="bi bi-trophy-fill text-warning"></i> Test Completed!
+        </h2>
+        <p class="text-muted">{{ attempt.exam_type }} - {{ attempt.submitted_at.strftime('%d %B %Y at %I:%M %p') }}</p>
+    </div>
+</div>
+
+<!-- Score Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card text-center shadow">
+            <div class="card-body">
+                <h6 class="text-muted">Total Score</h6>
+                <h2 class="{{ 'text-success' if attempt.total_score > 0 else 'text-danger' }}">
+                    {{ attempt.total_score }}
+                </h2>
+                <small class="text-muted">out of {{ attempt.total_questions * 4 }}</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center shadow">
+            <div class="card-body">
+                <h6 class="text-muted">Correct</h6>
+                <h2 class="text-success">{{ attempt.correct_answers }}</h2>
+                <small class="text-muted">{{ "%.1f"|format((attempt.correct_answers / attempt.total_questions) * 100) }}%</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center shadow">
+            <div class="card-body">
+                <h6 class="text-muted">Incorrect</h6>
+                <h2 class="text-danger">{{ attempt.incorrect_answers }}</h2>
+                <small class="text-muted">{{ "%.1f"|format((attempt.incorrect_answers / attempt.total_questions) * 100) }}%</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-3">
+        <div class="card text-center shadow">
+            <div class="card-body">
+                <h6 class="text-muted">Unattempted</h6>
+                <h2 class="text-warning">{{ attempt.unattempted }}</h2>
+                <small class="text-muted">{{ "%.1f"|format((attempt.unattempted / attempt.total_questions) * 100) }}%</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Stats -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-body">
+                <h6><i class="bi bi-clock"></i> Time Statistics</h6>
+                <p class="mb-0">Time Taken: <strong>{{ attempt.time_taken_minutes }} minutes</strong></p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow border-warning">
+            <div class="card-body">
+                <h6><i class="bi bi-star-fill text-warning"></i> XP Earned</h6>
+                <h3 class="text-warning mb-0">+{{ attempt.xp_earned }} XP</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Subject-wise Performance -->
+{% if subject_scores %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Subject-wise Performance</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Score</th>
+                            <th>Performance</th>
+                            <th>Analysis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subject, score in subject_scores.items() %}
+                        {% set max_score = 100 %}
+                        {% set percentage = ((score / max_score) * 100)|abs|int %}
+                        {% if percentage > 100 %}
+                            {% set percentage = 100 %}
+                        {% endif %}
+                        <tr>
+                            <td><strong>{{ subject }}</strong></td>
+                            <td>
+                                <span class="{{ 'text-success' if score > 0 else 'text-danger' }}">
+                                    {{ score }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="progress" style="height: 25px; min-width: 200px;">
+                                    <div class="progress-bar {{ 'bg-success' if score > 0 else 'bg-danger' }}" 
+                                         style="width: {{ percentage }}%">
+                                        {{ percentage }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if percentage >= 70 %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-hand-thumbs-up-fill"></i> Strength
+                                    </span>
+                                {% elif percentage >= 50 %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-dash-circle-fill"></i> Average
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> Needs Work
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Strength & Weakness Summary -->
+{% if subject_scores %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-hand-thumbs-up-fill"></i> Your Strengths in This Test</h5>
+            </div>
+            <div class="card-body">
+                {% set strengths = [] %}
+                {% for subject, score in subject_scores.items() %}
+                    {% set max_score = 100 %}
+                    {% set percentage = ((score / max_score) * 100)|abs|int %}
+                    {% if percentage > 100 %}
+                        {% set percentage = 100 %}
+                    {% endif %}
+                    {% if percentage >= 70 %}
+                        {% set _ = strengths.append({'subject': subject, 'score': score, 'percentage': percentage}) %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% if strengths %}
+                    <ul class="list-group">
+                        {% for item in strengths %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span><i class="bi bi-check-circle-fill text-success"></i> <strong>{{ item.subject }}</strong></span>
+                                <div>
+                                    <span class="badge bg-success">{{ item.score }} marks</span>
+                                    <span class="badge bg-secondary">{{ item.percentage }}%</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Show chapters for this subject where student got correct -->
+                            {% set correct_chapters = [] %}
+                            {% for result in results %}
+                                {% if result.question.subject == item.subject and result.answer.is_correct and result.question.chapter %}
+                                    {% if result.question.chapter not in correct_chapters %}
+                                        {% set _ = correct_chapters.append(result.question.chapter) %}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if correct_chapters %}
+                            <div class="mt-2">
+                                <small class="text-muted"><strong>Strong chapters:</strong></small><br>
+                                {% for chapter in correct_chapters %}
+                                    <span class="badge bg-success bg-opacity-25 text-success me-1 mb-1">
+                                        <i class="bi bi-book"></i> {{ chapter }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="alert alert-success mt-3 mb-0">
+                        <small><i class="bi bi-lightbulb-fill"></i> <strong>Great job!</strong> Keep practicing these subjects to maintain your edge.</small>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">No subjects scored above 70% in this test. Keep practicing to build your strengths!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Areas Needing Improvement</h5>
+            </div>
+            <div class="card-body">
+                {% set weaknesses = [] %}
+                {% for subject, score in subject_scores.items() %}
+                    {% set max_score = 100 %}
+                    {% set percentage = ((score / max_score) * 100)|abs|int %}
+                    {% if percentage > 100 %}
+                        {% set percentage = 100 %}
+                    {% endif %}
+                    {% if percentage < 70 %}
+                        {% set _ = weaknesses.append({'subject': subject, 'score': score, 'percentage': percentage}) %}
+                    {% endif %}
+                {% endfor %}
+                
+                {% if weaknesses %}
+                    <ul class="list-group">
+                        {% for item in weaknesses %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>
+                                    {% if item.percentage < 50 %}
+                                        <i class="bi bi-x-circle-fill text-danger"></i>
+                                    {% else %}
+                                        <i class="bi bi-dash-circle-fill text-warning"></i>
+                                    {% endif %}
+                                    <strong>{{ item.subject }}</strong>
+                                </span>
+                                <div>
+                                    <span class="badge bg-{{ 'danger' if item.percentage < 50 else 'warning text-dark' }}">{{ item.score }} marks</span>
+                                    <span class="badge bg-secondary">{{ item.percentage }}%</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Show chapters for this subject where student got incorrect -->
+                            {% set weak_chapters = [] %}
+                            {% for result in results %}
+                                {% if result.question.subject == item.subject and not result.answer.is_correct and result.answer.selected_option and result.question.chapter %}
+                                    {% if result.question.chapter not in weak_chapters %}
+                                        {% set _ = weak_chapters.append(result.question.chapter) %}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <!-- Show chapters that were not attempted -->
+                            {% set unattempted_chapters = [] %}
+                            {% for result in results %}
+                                {% if result.question.subject == item.subject and not result.answer.selected_option and result.question.chapter %}
+                                    {% if result.question.chapter not in unattempted_chapters and result.question.chapter not in weak_chapters %}
+                                        {% set _ = unattempted_chapters.append(result.question.chapter) %}
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if weak_chapters %}
+                            <div class="mt-2">
+                                <small class="text-muted"><strong>Chapters with mistakes:</strong></small><br>
+                                {% for chapter in weak_chapters %}
+                                    <span class="badge bg-danger bg-opacity-25 text-danger me-1 mb-1">
+                                        <i class="bi bi-x-circle"></i> {{ chapter }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            {% if unattempted_chapters %}
+                            <div class="mt-2">
+                                <small class="text-muted"><strong>Unattempted chapters:</strong></small><br>
+                                {% for chapter in unattempted_chapters %}
+                                    <span class="badge bg-warning bg-opacity-25 text-warning me-1 mb-1">
+                                        <i class="bi bi-dash-circle"></i> {{ chapter }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <small><i class="bi bi-info-circle-fill"></i> <strong>Focus here!</strong> Review concepts and practice more questions in these chapters.</small>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">All subjects scored above 70%! Excellent performance! 🎉</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Detailed Review -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="bi bi-list-check"></i> Detailed Review</h5>
+            </div>
+            <div class="card-body">
+                
+                {% for result in results %}
+                {% set max_score = 100 %}
+                {% set subject_score = subject_scores.get(result.question.subject, 0) %}
+                {% set subject_percentage = ((subject_score / max_score) * 100)|abs|int %}
+                {% if subject_percentage > 100 %}
+                    {% set subject_percentage = 100 %}
+                {% endif %}
+                
+                <div class="question-review mb-4 p-3 border rounded 
+                            {% if result.answer.is_correct %}border-success bg-success bg-opacity-10
+                            {% elif result.answer.selected_option %}border-danger bg-danger bg-opacity-10
+                            {% else %}border-warning bg-warning bg-opacity-10{% endif %}">
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6>
+                            <span class="badge bg-secondary">{{ result.question.subject }}</span>
+                            {% if result.question.chapter %}
+                                <span class="badge bg-info">
+                                    <i class="bi bi-book"></i> {{ result.question.chapter }}
+                                </span>
+                            {% endif %}
+                            {% if result.question.difficulty %}
+                                <span class="badge bg-{{ 'success' if result.question.difficulty == 'Easy' else 'warning text-dark' if result.question.difficulty == 'Medium' else 'danger' }}">
+                                    <i class="bi bi-{{ 'check-circle' if result.question.difficulty == 'Easy' else 'dash-circle' if result.question.difficulty == 'Medium' else 'exclamation-circle' }}"></i>
+                                    {{ result.question.difficulty }}
+                                </span>
+                            {% endif %}
+                            Question {{ loop.index }}
+                            
+                            <!-- Subject Strength/Weakness Indicator -->
+                            {% if subject_percentage >= 70 %}
+                                <span class="badge bg-success" title="This is one of your strengths!">
+                                    <i class="bi bi-hand-thumbs-up"></i> Strength
+                                </span>
+                            {% elif subject_percentage < 50 %}
+                                <span class="badge bg-danger" title="Focus more on this subject">
+                                    <i class="bi bi-exclamation-triangle"></i> Needs Work
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark" title="Average performance">
+                                    <i class="bi bi-dash-circle"></i> Average
+                                </span>
+                            {% endif %}
+                        </h6>
+                        <div>
+                            {% if result.answer.is_correct %}
+                                <span class="badge bg-success">Correct</span>
+                            {% elif result.answer.selected_option %}
+                                <span class="badge bg-danger">Incorrect</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">Not Attempted</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <p class="mb-3"><strong>{{ result.question.question_text }}</strong></p>
+                    
+                    <!-- Question Image in Results -->
+                    {% if result.question.image_url %}
+                    <div class="question-image my-3 text-center">
+                        <img src="{{ url_for('static', filename='images/' + result.question.image_url) }}" 
+                             alt="Question diagram" 
+                             class="img-fluid rounded border shadow-sm"
+                             style="max-width: 100%; max-height: 350px;">
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        {% for option in ['A', 'B', 'C', 'D'] %}
+                        {% set option_text = result.question['option_' + option.lower()] %}
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 rounded
+                                {% if option == result.question.correct_answer %}bg-success text-white
+                                {% elif option == result.answer.selected_option %}bg-danger text-white
+                                {% else %}bg-light{% endif %}">
+                                <strong>{{ option }}.</strong> {{ option_text }}
+                                {% if option == result.question.correct_answer %}✓{% endif %}
+                                {% if option == result.answer.selected_option and not result.answer.is_correct %}✗{% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mt-2">
+                        <small>
+                            <strong>Your Answer:</strong> 
+                            {% if result.answer.selected_option %}{{ result.answer.selected_option }}
+                            {% else %}Not Attempted{% endif %}
+                            | <strong>Correct:</strong> {{ result.question.correct_answer }}
+                        </small>
+                    </div>
+                    
+                </div>
+                {% endfor %}
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="row">
+    <div class="col-12 text-center">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary me-2">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="{{ url_for('exam_select') }}" class="btn btn-success">
+            <i class="bi bi-arrow-repeat"></i> Take Another Test
+        </a>
+    </div>
+</div>
+
+{% endblock %}

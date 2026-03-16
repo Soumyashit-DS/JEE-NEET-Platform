@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Submission{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-warning">
+                <h4 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Confirm Submission</h4>
+            </div>
+            <div class="card-body">
+                <p>Are you sure you want to submit your test?</p>
+                
+                <div class="alert alert-info">
+                    <strong>Summary:</strong><br>
+                    <ul class="mb-0">
+                        <li>Answered: <strong>{{ summary.answered }}</strong></li>
+                        <li>Not Answered: <strong>{{ summary.unanswered }}</strong></li>
+                        <li>Total Questions: <strong>{{ summary.total }}</strong></li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-danger">
+                    <strong>Warning:</strong> You cannot change answers after submission!
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('take_exam') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Go Back
+                    </a>
+                    <form method="POST" action="{{ url_for('submit_exam') }}">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-check-circle"></i> Yes, Submit
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

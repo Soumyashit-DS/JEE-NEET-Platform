@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}{{ exam_config.name }} - Exam in Progress{% endblock %}
+
+{# Auto-refresh page every 30 seconds to update timer #}
+{% block auto_refresh %}30{% endblock %}
+
+{% block content %}
+
+<!-- Exam Header with Timer -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body p-2">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <h5 class="mb-0">
+                    <span class="badge bg-{{ 'primary' if all_answers[0].attempt.exam_type == 'JEE' else 'success' }}">
+                        {{ exam_config.name }}
+                    </span>
+                </h5>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="timer {{ 'text-danger' if time_data and time_data.total_seconds < 300 else '' }}">
+                    <i class="bi bi-clock"></i>
+                    <strong style="font-size: 1.5rem;">{{ time_remaining }}</strong>
+                </div>
+                {% if time_data and time_data.total_seconds < 300 %}
+                <small class="text-danger">⚠️ Less than 5 minutes remaining!</small>
+                {% endif %}
+            </div>
+            <div class="col-md-4 text-end">
+                <form method="GET" action="{{ url_for('submit_exam') }}" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-check-circle"></i> Submit Test
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    
+    <!-- Question Display -->
+    <div class="col-lg-9">
+        <div class="card shadow">
+            <div class="card-body">
+                
+                {% if current_question %}
+                <!-- Question Header -->
+                <div class="d-flex justify-content-between mb-3">
+                    <h5>
+                        <span class="badge bg-secondary">{{ current_question.question.subject }}</span>
+                        {% if current_question.question.chapter %}
+                            <span class="badge bg-info">
+                                <i class="bi bi-book"></i> {{ current_question.question.chapter }}
+                            </span>
+                        {% endif %}
+                        {% if current_question.question.difficulty %}
+                            <span class="badge bg-{{ 'success' if current_question.question.difficulty == 'Easy' else 'warning text-dark' if current_question.question.difficulty == 'Medium' else 'danger' }}">
+                                {{ current_question.question.difficulty }}
+                            </span>
+                        {% endif %}
+                        <br>
+                        Question {{ current_index + 1 }} of {{ total_questions }}
+                    </h5>
+                </div>
+                
+                <!-- Question Text -->
+                <div class="question-text mb-4">
+                    <p class="lead">{{ current_question.question.question_text }}</p>
+                    
+                    <!-- Question Image (if exists) -->
+                    {% if current_question.question.image_url %}
+                    <div class="question-image my-4 text-center">
+                        <img src="{{ url_for('static', filename='images/' + current_question.question.image_url) }}" 
+                             alt="Question diagram" 
+                             class="img-fluid rounded border shadow-sm"
+                             style="max-width: 100%; max-height: 400px;">
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Answer Form -->
+                <form method="POST" action="{{ url_for('take_exam') }}">
+                    
+                    <!-- Options -->
+                    <div class="options mb-4">
+                        {% for option in ['A', 'B', 'C', 'D'] %}
+                        {% set option_text = current_question.question['option_' + option.lower()] %}
+                        <div class="form-check option-item mb-3">
+                            <input class="form-check-input" 
+                                   type="radio" 
+                                   name="selected_option" 
+                                   id="option_{{ option }}"
+                                   value="{{ option }}"
+                                   {% if current_question.answer.selected_option == option %}checked{% endif %}>
+                            <label class="form-check-label w-100" for="option_{{ option }}">
+                                <strong>{{ option }}.</strong> {{ option_text }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Navigation Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {% if current_index > 0 %}
+                            <button type="submit" name="action" value="previous" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Previous
+                            </button>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if current_index < total_questions - 1 %}
+                            <button type="submit" name="action" value="next" class="btn btn-primary">
+                                Save & Next <i class="bi bi-arrow-right"></i>
+                            </button>
+                            {% else %}
+                            <button type="submit" name="action" value="next" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> Save Answer
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                </form>
+                {% else %}
+                <div class="alert alert-warning">
+                    No question found. Please contact support.
+                </div>
+                {% endif %}
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- Question Palette -->
+    <div class="col-lg-3">
+        <div class="card shadow">
+            <div class="card-header bg-dark text-white">
+                <h6 class="mb-0"><i class="bi bi-grid-3x3"></i> Questions</h6>
+            </div>
+            <div class="card-body">
+                
+                <!-- Summary -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <small>Answered:</small>
+                        <strong class="text-success">{{ answered_count }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <small>Not Answered:</small>
+                        <strong class="text-danger">{{ unanswered_count }}</strong>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <!-- Question Grid -->
+                <div class="question-palette">
+                    {% for ans in all_answers %}
+                    <form method="POST" action="{{ url_for('take_exam') }}" style="display: inline;">
+                        <input type="hidden" name="action" value="jump">
+                        <input type="hidden" name="jump_to" value="{{ loop.index0 }}">
+                        <button type="submit" 
+                                class="palette-item {% if ans.selected_option %}answered{% else %}not-answered{% endif %} {% if loop.index0 == current_index %}active{% endif %}">
+                            {{ loop.index }}
+                        </button>
+                    </form>
+                    {% endfor %}
+                </div>
+                
+            </div>
+            <div class="card-footer">
+                <form method="GET" action="{{ url_for('submit_exam') }}">
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-check-circle"></i> Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Auto-submit warning -->
+{% if time_data and time_data.expired %}
+<div class="modal show" style="display: block; background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Time Expired!</h5>
+            </div>
+            <div class="modal-body">
+                <p>Your exam time has ended. The exam will be automatically submitted.</p>
+            </div>
+            <div class="modal-footer">
+                <form method="POST" action="{{ url_for('submit_exam') }}">
+                    <button type="submit" class="btn btn-danger">OK, Submit Now</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.palette-item {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    margin: 3px;
+    border: 2px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    line-height: 36px;
+}
+
+.palette-item.answered {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.palette-item.not-answered {
+    background: #f8f9fa;
+    border-color: #ced4da;
+}
+
+.palette-item.active {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.5);
+}
+
+.option-item {
+    padding: 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+}
+
+.option-item:has(input:checked) {
+    background: #e7f3ff;
+    border-color: #0d6efd;
+}
+
+.timer {
+    font-size: 1.2rem;
+}
+</style>
+{% endblock %}

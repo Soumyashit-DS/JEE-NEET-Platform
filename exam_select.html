@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Select Exam - JEE/NEET Platform{% endblock %}
+
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col-12 text-center">
+        <h2><i class="bi bi-pencil-square"></i> Select Your Exam</h2>
+        <p class="text-muted">Choose the exam you want to practice</p>
+    </div>
+</div>
+
+<div class="row">
+    {% for exam_key, config in exam_configs.items() %}
+    <div class="col-md-6 mb-4">
+        <div class="card shadow h-100 border-{{ 'primary' if exam_key == 'JEE' else 'success' }}">
+            <div class="card-header bg-{{ 'primary' if exam_key == 'JEE' else 'success' }} text-white">
+                <h3 class="mb-0">
+                    <i class="bi bi-{{ 'calculator' if exam_key == 'JEE' else 'heart-pulse' }}"></i>
+                    {{ config.name }}
+                </h3>
+            </div>
+            <div class="card-body">
+                
+                <div class="mb-4">
+                    <h5>Exam Format:</h5>
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="bi bi-question-circle"></i> Questions</span>
+                            <strong>{{ config.total_questions }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="bi bi-trophy"></i> Total Marks</span>
+                            <strong>{{ config.total_marks }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><i class="bi bi-clock"></i> Duration</span>
+                            <strong>{{ config.duration_minutes }} minutes</strong>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Subjects:</h5>
+                    {% for subject in config.subjects %}
+                        <span class="badge bg-secondary me-1">{{ subject }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="mb-4">
+                    <div class="alert alert-info mb-0">
+                        <strong>Marking:</strong> +4 correct | -1 incorrect | 0 unattempted
+                    </div>
+                </div>
+                
+                <div class="d-grid">
+                    <a href="{{ url_for('start_exam', exam_type=exam_key) }}" 
+                       class="btn btn-{{ 'primary' if exam_key == 'JEE' else 'success' }} btn-lg">
+                        <i class="bi bi-play-circle"></i> Start {{ exam_key }} Test
+                    </a>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h5><i class="bi bi-lightbulb-fill text-warning"></i> Before You Start:</h5>
+                <ul class="mb-0">
+                    <li>Timer starts immediately when you begin</li>
+                    <li>Answers are saved automatically as you navigate</li>
+                    <li>Exam will auto-submit when time expires</li>
+                    <li>You can navigate between questions freely</li>
+                    <li>Make sure you have a stable internet connection</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
